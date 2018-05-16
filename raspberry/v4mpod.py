@@ -430,7 +430,12 @@ class cam_ctrl(object):
         self.pic_count = 0
         self.c = None
         
-    def connect(self, serial = self.ardu_serial, baud = self.ardu_baud):
+    def connect(self, serial = None, baud = None):
+        if serial == None:
+            serial = self.ardu_serial
+        if baud == None:
+            baud = self.ardu_baud
+
         try: 
             arduino = PyCmdMessenger.ArduinoBoard(serial, baud, timeout=4)
             commands = [
@@ -447,12 +452,15 @@ class cam_ctrl(object):
             print("Impossible de se connecter à l'Arduino")
             print(e)
         
-    def takePic(self, log_queue, cam = self.cam_range):
+    def takePic(self, log_queue, cam = None):
+        if cam == None:
+            cam = self.cam_range
+            
         #TODO ajouter un retard si le délai entre le déclenchement précédent
         # et le nouveau est trop court.
         timestamp=time.time()
         self.c.send("KTakepic", cam, self.pic_count +1)
-        pic_return = c.receive(arg_formats="bLI")
+        pic_return = self.c.receive(arg_formats="bLI")
         #print(pic_return)
         if (cam ^ pic_return[1][0]) != 0:
             beep(0.4, 0.1, 2)
@@ -472,18 +480,24 @@ class cam_ctrl(object):
         self.pic_count += 1
         return pic_return
         
-        def power_up(self, cam=self.cam_range):
-            self.c.send("KPower_up", cam)
-            time.sleep(6)
-            start_return = c.receive(arg_formats="b")
-            logfile.write(str(start_return) + "\n")
-            print(start_return)
-    
-        def power_down(self, cam=self.cam_range):
-            self.c.send("KPower_down", cam)
-            down_return=c.receive()
-            logfile.write(str(down_return) + "\n")
-            return c.receive()
+    def power_up(self, cam=None):
+        if cam == None:
+            cam = self.cam_range
+
+        self.c.send("KPower_up", cam)
+        time.sleep(6)
+        start_return = self.c.receive(arg_formats="b")
+        logfile.write(str(start_return) + "\n")
+        print(start_return)
+
+    def power_down(self, cam=None):
+        if cam == None:
+            cam = self.cam_range
+            
+        self.c.send("KPower_down", cam)
+        down_return=self.c.receive()
+        logfile.write(str(down_return) + "\n")
+        return self.c.receive()
 
 # Initialize an ArduinoBoard instance.  This is where you specify baud rate and
 # serial timeout.  If you are using a non ATmega328 board, you might also need
@@ -756,5 +770,6 @@ mycams = cam_ctrl("/dev/ttyACM0", 115200, 0b00000001)
 
 #exit_prog()
 #sys.exit()
+#TODO ajouter un GPIO.cleanup() à la fermeture du script
 
   
