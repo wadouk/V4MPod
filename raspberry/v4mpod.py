@@ -432,7 +432,7 @@ class cam_ctrl(object):
         
     def connect(self, serial = self.ardu_serial, baud = self.ardu_baud):
         try: 
-            arduino = PyCmdMessenger.ArduinoBoard("/dev/ttyACM0",baud_rate=115200, timeout=4)
+            arduino = PyCmdMessenger.ArduinoBoard(serial, baud, timeout=4)
             commands = [
                     ["KCommandList", ""],
                     ["KTakepic", "bI"],
@@ -447,7 +447,7 @@ class cam_ctrl(object):
             print("Impossible de se connecter à l'Arduino")
             print(e)
         
-    def takePic(self, cam = self.cam_range, log_queue):
+    def takePic(self, log_queue, cam = self.cam_range):
         #TODO ajouter un retard si le délai entre le déclenchement précédent
         # et le nouveau est trop court.
         timestamp=time.time()
@@ -746,6 +746,13 @@ while keepRunning:
         keySelect=False
         exec(menuA[0][menuA[-2][0]]["Func"] + "(" + menuA[0][menuA[-2][0]]["Param"] +")")
         print("exec done")
+
+mybike = speedometer(0.35, 1, hall_pulse_queue)
+qq = Queue()
+shutter = shutter_ctrl(qq, mybike)
+mycams = cam_ctrl("/dev/ttyACM0", 115200, 0b00000001)
+
+
 
 #exit_prog()
 #sys.exit()
