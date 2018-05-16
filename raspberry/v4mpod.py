@@ -422,11 +422,73 @@ def beep(duration=0.2, pause=0.2, repeat=0):
         GPIO.output(buzzer_pin,0)
         time.sleep(pause)
 
+class cam_ctrl(object):
+    def __init__(self, ardu_serial, ardu_baud, cam_range):
+        self.ardu_serial = ardu_serial
+        self.ardu_baud = ardu_baud
+        self.cam_range = cam_range
+        self.pic_count = 0
+        self.c = None
+        
+    def connect(self, serial = self.ardu_serial, baud = self.ardu_baud):
+        try: 
+            arduino = PyCmdMessenger.ArduinoBoard("/dev/ttyACM0",baud_rate=115200, timeout=4)
+            commands = [
+                    ["KCommandList", ""],
+                    ["KTakepic", "bI"],
+                    ["KPower_up", "b"],
+                    ["KPower_down", "b"],
+                    ["KWake_up", ""]
+                    ]
+            # Initialize the messenger
+            self.c = PyCmdMessenger.CmdMessenger(arduino,commands)
 
+        except Exception as e:
+            print("Impossible de se connecter à l'Arduino")
+            print(e)
+        
+    def takePic(self, cam = self.cam_range, log_queue):
+        #TODO ajouter un retard si le délai entre le déclenchement précédent
+        # et le nouveau est trop court.
+        timestamp=time.time()
+        self.c.send("KTakepic", cam, self.pic_count +1)
+        pic_return = c.receive(arg_formats="bLI")
+        #print(pic_return)
+        if (cam ^ pic_return[1][0]) != 0:
+            beep(0.4, 0.1, 2)
+            status="cam error"
+        else:
+            beep(0.1)
+            status="ok"
+            
+        #version avec datetime    
+        print(pic_return[0], pic_return[1][1:3], bin(pic_return[1][0])[2:].zfill(8), datetime.datetime.fromtimestamp(pic_return[2]).strftime('%H:%M:%S.%f')[:-3])
+        #version avec time.gmtime
+        #print(pic_return[0], pic_return[1][1:3], bin(pic_return[1][0])[2:].zfill(8), time.gmtime(pic_return[2]))
+
+        log_queue.put(str(timestamp) + "," + str(pic_return) + "," + str(bin(cam)) + "," + status + "\n")
+        
+        
+        self.pic_count += 1
+        return pic_return
+        
+        def power_up(self, cam=self.cam_range):
+            self.c.send("KPower_up", cam)
+            time.sleep(6)
+            start_return = c.receive(arg_formats="b")
+            logfile.write(str(start_return) + "\n")
+            print(start_return)
+    
+        def power_down(self, cam=self.cam_range):
+            self.c.send("KPower_down", cam)
+            down_return=c.receive()
+            logfile.write(str(down_return) + "\n")
+            return c.receive()
 
 # Initialize an ArduinoBoard instance.  This is where you specify baud rate and
 # serial timeout.  If you are using a non ATmega328 board, you might also need
 # to set the data sizes (bytes for integers, longs, floats, and doubles). 
+"""
 try: 
     arduino = PyCmdMessenger.ArduinoBoard("/dev/ttyACM0",baud_rate=115200, timeout=4)
     commands = [
@@ -503,6 +565,7 @@ def power_down(cam=0b00000001):
     down_return=c.receive()
     logfile.write(str(down_return) + "\n")
     return c.receive()
+"""
 
 def start_gnss_log():
     subprocess.call(["gpspipe -d -R -o ~/Documents/Sessions_V4MPOD/`date +%Y-%m-%d_%H.%M.%S`.nmea"], shell=True)
@@ -647,21 +710,21 @@ menuA = [[{"Name":"Take Pic", "Func":"takePic", "Param":"cam_range, logqueue"},
 # Main
 
 splash_boot()
-gnss_fix()
+#gnss_fix()
 keyDown = False
 keyUp = False
 keySelect = False
 keyBack = False
-keepRunning=True
+keepRunning=False
 flushthread = None
 timelapsethread = None
 Timelapse = False
-pic_count = 0
+
 logqueue=Queue(maxsize=0)
 back=menu.create_blanck_img()
 img_menu_top = menu.create_full_img(menuA[0])
 current_img=menu.select_line(img_menu_top, back, 1, disp)
-start_gnss_log()
+#start_gnss_log()
 logfile=open_file()
 
 
@@ -684,7 +747,7 @@ while keepRunning:
         exec(menuA[0][menuA[-2][0]]["Func"] + "(" + menuA[0][menuA[-2][0]]["Param"] +")")
         print("exec done")
 
-exit_prog()
-sys.exit()
+#exit_prog()
+#sys.exit()
 
   
