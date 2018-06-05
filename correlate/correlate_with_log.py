@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import print_function
@@ -820,10 +820,9 @@ def config_parse(profile_name):
 
     import ConfigParser
     config = ConfigParser.ConfigParser()
-    config.read(os.path.join(os.path.dirname(sys.argv[0]), 'profile.cfg'))
+    config.read(os.path.join(os.path.dirname(__file__), 'profile.cfg'))
 
-    folder_string = config.get(profile_name, "folder_names")
-    folder_string = [i.strip() for i in folder_string.split(",")]
+    folder_string = [i.strip() for i in config.get(profile_name, "folder_names").split(",")]
 
     cam_names = config.get(profile_name, "cam_names")
     cam_names = [i.strip() for i in cam_names.split(",")]
