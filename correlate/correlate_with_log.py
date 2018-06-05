@@ -867,10 +867,9 @@ def find_directory(working_dir, strings_to_find):
     :param strings_to_find: a list of strings to find in the folder's names
     :return: a list of folder with the string_to_find in their name"""
     images_path = []
-    dir_list = [i for i in os.listdir(working_dir) if os.path.isdir(i)]
     for string in strings_to_find:
         try:
-            images_path.append(os.path.abspath(os.path.join(working_dir, dir_list[dir_list.index(string)])))
+            images_path.append(os.path.abspath(os.path.join(working_dir, string)))
         except ValueError:
             print("I can't find {0}".format(string))
             sys.exit()
