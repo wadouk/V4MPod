@@ -419,7 +419,7 @@ def correlate_double_diff_backward(loglist, piclist, pic_count_diff, cam_number)
 def insert_missing_timestamp(loglist, piclists, cam):
     """Insert missing timestamp in the piclists, when the log indicate that the cam didn't answer to the shutter request
     :param loglist: a list of log_infos nametuple
-    :param piclist: a list of Picture_infos namedtuple
+    :param piclists: a list of Picture_infos namedtuple
     :param cam: cam's number
     :return: the list of Picture_infos namedtuple with the missing timestamp inserted
     """
