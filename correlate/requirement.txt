@@ -1,5 +1,0 @@
-exifread
-LatLon
-geopy
-gpxpy
-pynmea2
