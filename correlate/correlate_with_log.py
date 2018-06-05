@@ -3,17 +3,22 @@
 from __future__ import division
 from __future__ import print_function
 
-import os, sys, datetime, time, argparse
+import argparse
+import datetime
+import os
+import sys
+import time
 import xml.etree.ElementTree as ET
+from collections import namedtuple
 
+from LatLon import LatLon
 from dateutil.tz import tzlocal
-from lib.geo import interpolate_lat_lon, decimal_to_dms
-from lib.gps_parser import get_lat_lon_time_from_gpx, get_lat_lon_time_from_nmea
+from geopy.distance import vincenty
+
 from lib.exif import EXIF
 from lib.exifedit import ExifEdit
-from LatLon import LatLon, Latitude, Longitude
-from geopy.distance import vincenty
-from collections import namedtuple
+from lib.geo import interpolate_lat_lon
+from lib.gps_parser import get_lat_lon_time_from_gpx, get_lat_lon_time_from_nmea
 
 Picture_infos = namedtuple('Picture_infos', ['path', 'DateTimeOriginal', 'SubSecTimeOriginal'])
 New_Picture_infos = namedtuple('New_Picture_infos',
